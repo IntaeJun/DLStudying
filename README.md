@@ -1,1 +1,1 @@
-# DLStudyings
+# DLStudying
