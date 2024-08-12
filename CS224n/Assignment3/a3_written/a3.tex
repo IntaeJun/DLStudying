@@ -1,0 +1,79 @@
+\documentclass{article}
+\usepackage[a4paper, portrait, margin=1in]{geometry}
+
+\usepackage{kotex, amsmath, amsfonts, amsthm, amssymb, bm}
+\usepackage{setspace, indentfirst, graphicx}
+\usepackage{enumitem}
+\usepackage[english]{babel}
+\usepackage[autostyle, english = american]{csquotes}
+\MakeOuterQuote{"}
+
+\title{\textbf{CS 224n Assignment \#3: Dependency Parsing}}
+\author{Intae Jun}
+\date{}
+
+\begin{document}
+\maketitle
+\doublespacing
+
+% 1 %
+\section{Machine Learning \& Neural Networks (8 points)}
+\begin{enumerate}[label=(\alph*)]
+    % (a) % ----------------------------------------
+    \item \begin{enumerate}[label=\roman*.]
+        % (i) % ----------------------------------------
+        \item $\bm{m}$ accumulates the gradients over time, giving more weight on gradients accumulated over multiple steps (the degree of weighting depends on the setting of $\beta_1$).
+        This accumulation helps to sommoth out the updates, reducing the variance in the direction of parameter changes and leading to more stable convergence.
+
+        % (ii) % ----------------------------------------
+        \item $\bm{v}$ is the moving average of the squared gradients. It captures the magnitude of the gradients over time, giving more weight on accumulated magnitude (if $\beta_2$ is set as $>0.5$).
+        Dividing by $\sqrt{\bm{v}_{t+1}}$ serves to normalize. If a parameter has had consistently large gradients, i.e., the element of $\bm{v}_{t+1}$ is quite large, then its reciprocal will be smaller than others, which leads to smaller update of that element.
+        Conversely, for parameters that have had consistently small gradients, the division by $\sqrt{\bm{v}_{t+1}}$ will lead to larger updates.
+        This normalization would help the optimizer to stabilize updates by scaling and prevent it from slower convergence of some parameters.
+    \end{enumerate}
+
+    % (b) % ----------------------------------------
+    \item \begin{enumerate}[label=\roman*.]
+        % (i) % ----------------------------------------
+        \item For $i$th element, $\mathbb{E}_{p_\text{drop}}[\bm{h}_{\text{drop}}]_i = \gamma (0\cdot p_\text{drop} + h_i\cdot (1-p_\text{drop})) \equiv h_i$.
+        Hence $\gamma$ must be $1/(1-p_\text{drop})$.
+
+        % (ii) % ----------------------------------------
+        \item During training, dropout helps prevent overfitting by ensuring the model doesn't overly depend on specific neurons, promoting better generalization.
+        However, during evaluation, dropout is not applied so that all neurons are active, ensuring consistent and reliable predictions.
+        This allows the model to fully leverage the learned features and produce stable outputs without the randomness introduced by dropout.
+    \end{enumerate}
+\end{enumerate}
+
+
+% 1 %
+\section{Neural Transition-Based Dependency Parsing (44 points)}
+\begin{enumerate}[label=(\roman*)]
+    % (a) % ----------------------------------------
+    \item The sequence of transitions needed for parsing \textit{"Today I parsed a sentence".} is as follows:
+    \begin{table}[]
+        \centering
+        \resizebox{\textwidth}{!}{%
+        \begin{tabular}{l|l|l|l}
+        Stack                           & Buffer                              & New dependency           & Transition            \\ \hline
+        {[}Root{]}                      & {[}Today, I, parsed, a, sentence{]} &                          & Initial Configuration \\
+        {[}Root, Today{]}               & {[}I, parsed, a, sentence{]}        &                          & SHIFT                 \\
+        {[}Root, Today, I{]}            & {[}parsed, a, sentence{]}           &                          & SHIFT                 \\
+        {[}Root, Today, I, parsed{]}    & {[}a, sentence{]}                   &                          & SHIFT                 \\
+        {[}Root, Today, parsed{]}       & {[}a, sentence{]}                   & parsed$\rightarrow$I     & LEFT-ARC              \\
+        {[}Root, parsed{]}              & {[}a, sentence{]}                   & parsed$\rightarrow$Today & LEFT-ARC              \\
+        {[}Root, parsed, a{]}           & {[}sentence{]}                      &                          & SHIFT                 \\
+        {[}Root, parsed, a, sentence{]} & {[}{]}                              &                          & SHIFT                 \\
+        {[}Root, parsed, sentence{]}    & {[}{]}                              & sentence$\leftarrow$a    & LEFT-ARC              \\
+        {[}Root, parsed{]}              & {[}{]}                              & parsed$\rightarrow$      & RIGHT-ARC             \\
+        {[}Root{]}                      & {[}{]}                              & Root$\rightarrow$parsed  & RIGHT-ARC            
+        \end{tabular}%
+        }
+    \end{table}
+
+    % (b) % ----------------------------------------
+    \pagebreak
+    \item $2n$ times of transitions are needed: $n$ times for shifting each word from a butter to a stack, $n$ times for removing each word except "Root" from a stack based on dependency.
+\end{enumerate}
+
+\end{document}
